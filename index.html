@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ea580c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gasolina">
+<meta name="application-name" content="Gasolina a prop">
+<meta name="description" content="Les gasolineres més barates del teu voltant, i si val la pena desviar-se.">
+<title>Gasolina a prop · Xoriguer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main class="screen">
+  <header class="top">
+    <img class="logo" src="icons/mark-256.png" alt="">
+    <div class="ttl"><h1 data-i18n="app_name"></h1><p data-i18n="app_sub"></p></div>
+    <button class="carBtn" id="btnCar"><svg viewBox="0 0 24 24"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h14l2 5v4a1 1 0 0 1-1 1h-1M5 12h14M7 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0M13 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/></svg><span data-i18n="car_title"></span></button>
+  </header>
+
+  <h2 class="lbl" data-i18n="fuel_title"></h2>
+  <div class="fuels" id="fuels"></div>
+
+  <button class="bigBtn" id="btnSearch"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg><span id="btnSearchTxt"></span></button>
+  <div class="placeRow">
+    <span id="fromTxt"></span>
+    <button class="linkBtn" id="btnPlace" data-i18n="btn_place"></button>
+  </div>
+
+  <div class="msg hidden" id="msg"></div>
+  <div class="status hidden" id="status"><div class="spin"></div><span id="statusTxt"></span></div>
+
+  <section id="results" class="hidden">
+    <div class="best" id="best"></div>
+    <div class="tools">
+      <div class="seg" id="sortSel">
+        <button data-s="preu" data-i18n="sort_price"></button>
+        <button data-s="dist" data-i18n="sort_dist"></button>
+      </div>
+      <label class="chk"><input type="checkbox" id="onlyOpen"><span data-i18n="only_open"></span></label>
+    </div>
+    <p class="count" id="count"></p>
+    <div id="list"></div>
+  </section>
+
+  <footer class="foot">
+    <p id="source"></p>
+    <p data-i18n="credit"></p>
+  </footer>
+</main>
+
+<!-- ============ EL MEU COTXE ============ -->
+<div class="overlay hidden" id="carSheet">
+  <div class="sheet">
+    <h2 data-i18n="car_title"></h2>
+    <label class="field"><span data-i18n="car_cons"></span>
+      <div class="stepper"><button data-step="cons" data-d="-0.5">−</button><input id="inCons" inputmode="decimal"><button data-step="cons" data-d="0.5">+</button></div>
+    </label>
+    <label class="field"><span data-i18n="car_litres"></span>
+      <div class="stepper"><button data-step="litres" data-d="-5">−</button><input id="inLitres" inputmode="numeric"><button data-step="litres" data-d="5">+</button></div>
+    </label>
+    <div class="field"><span data-i18n="car_radius"></span>
+      <div class="seg" id="radiusSel">
+        <button data-r="5">5 km</button><button data-r="10">10 km</button><button data-r="20">20 km</button><button data-r="30">30 km</button>
+      </div>
+    </div>
+    <p class="note" data-i18n="car_note"></p>
+    <div class="field"><span data-i18n="text_size"></span>
+      <div class="seg" id="sizeSel">
+        <button data-z="1" data-i18n="ts_1"></button><button data-z="2" data-i18n="ts_2"></button><button data-z="3" data-i18n="ts_3"></button>
+      </div>
+    </div>
+    <div class="field"><span data-i18n="lang_title"></span>
+      <div class="seg" id="langSel"></div>
+    </div>
+    <button class="bigBtn" id="carDone" data-i18n="done"></button>
+  </div>
+</div>
+
+<!-- ============ TRIAR POBLACIÓ ============ -->
+<div class="overlay hidden" id="placeSheet">
+  <div class="sheet">
+    <h2 data-i18n="place_title"></h2>
+    <label class="field"><span data-i18n="place_prov"></span><select id="selProv"></select></label>
+    <label class="field"><span data-i18n="place_mun"></span><select id="selMun" disabled></select></label>
+    <button class="bigBtn" id="placeGo" data-i18n="place_go" disabled></button>
+    <button class="linkBtn center" id="placeHere" data-i18n="place_here"></button>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/provincies.js"></script>
+<script src="js/horari.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
