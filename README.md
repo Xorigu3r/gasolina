@@ -2,7 +2,7 @@
 
 PWA que, amb la ubicació del mòbil, mostra les gasolineres properes ordenades pel preu del carburant triat
 (gasolina 95, 98, gasoil, gasoil Premium, GLP) i diu **si val la pena desviar-se**. Sense anuncis.
-Català, castellà, francès i anglès. Creat amb IA per Xavier Musté.
+Català, castellà, francès i anglès. Creat per Xavier Musté.
 
 Adreça prevista: **https://xorigu3r.github.io/gasolina/** (GitHub Pages, branca `main`).
 
