@@ -15,7 +15,7 @@
     --brand:#f97316;--brand2:#fb923c;--ok:#4ade80;--okbg:#14301e;--bad:#f87171;--badbg:#3a1a1a;--mid:#facc15;--midbg:#33290c}
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;line-height:1.35}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Segoe UI","Segoe UI Variable",Roboto,system-ui,-apple-system,sans-serif;line-height:1.35}
 button,select,input{font:inherit;color:inherit}
 button{border:0;cursor:pointer;background:none}
 svg{width:1.4em;height:1.4em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
