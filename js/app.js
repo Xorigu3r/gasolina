@@ -268,6 +268,10 @@ function pintaFont() {
 //  Quadres d'1° × 1°: "lat_lon".json → [nom, operador, adreça, municipi, lat, lon, horari, [[endoll, kW, quants]…]]
 // ============================================================
 const EV_BASE = "data/ev/";
+// A GitHub Pages les dades s'actualitzen cada dia (GitHub Action). Des d'una còpia (p. ex. xoriguer.dev) primer
+// les agafem de GitHub Pages (té CORS obert) i, si no hi arriba, la còpia local.
+const EV_GITHUB = "https://xorigu3r.github.io/gasolina/";
+const EV_FONTS = location.hostname === "xorigu3r.github.io" ? [""] : [EV_GITHUB, ""];
 const VIDA_EV = 12 * 60 * 60 * 1000;
 const ENDOLLS_EV = ["t2", "ccs", "chademo", "schuko"];
 let EV_DATA = "";
@@ -283,16 +287,18 @@ async function jsonAmbCache(url, vida) {
     if (r) { try { desat = await r.json(); } catch (e) {} }
     if (desat && Date.now() - desat.t < vida) return desat.d;
   }
-  try {
-    const r = await fetch(url, { cache: "no-cache" });
-    if (!r.ok) throw new Error(r.status);
-    const d = await r.json();
-    if (cache) await cache.put(abs, new Response(JSON.stringify({ t: Date.now(), d }), { headers: { "Content-Type": "application/json" } }));
-    return d;
-  } catch (err) {
-    if (desat) { EV_VELL = true; return desat.d; }
-    throw err;
+  let error;
+  for (const font of EV_FONTS) {
+    try {
+      const r = await fetch(font ? new URL(url, font).href : url, { cache: "no-cache" });
+      if (!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      if (cache) await cache.put(abs, new Response(JSON.stringify({ t: Date.now(), d }), { headers: { "Content-Type": "application/json" } }));
+      return d;
+    } catch (err) { error = err; }
   }
+  if (desat) { EV_VELL = true; return desat.d; }
+  throw error;
 }
 
 function quadresNecessaris(lat, lon, radi) {
