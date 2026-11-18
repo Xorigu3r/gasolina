@@ -10,9 +10,11 @@
 }
 :root[data-z="2"]{font-size:20px}
 :root[data-z="3"]{font-size:23px}
+/* Mode fosc: paleta «Blau pissarra» de la casa (mai fons negre) */
 @media (prefers-color-scheme:dark){
-  :root{--bg:#14110e;--card:#1f1a16;--txt:#f3eee9;--muted:#a89e94;--line:#342c25;--soft:#2a231d;
-    --brand:#f97316;--brand2:#fb923c;--ok:#4ade80;--okbg:#14301e;--bad:#f87171;--badbg:#3a1a1a;--mid:#facc15;--midbg:#33290c}
+  :root{--bg:#1E2A3B;--card:#27354A;--txt:#F6EFE2;--muted:#B9B2A5;--line:#41506A;--soft:#31405A;
+    --brand:#F2650F;--brand2:#FFA82E;--ok:#5fd68a;--okbg:#24433a;--bad:#ff8a80;--badbg:#4a2f3a;--mid:#ffd166;--midbg:#43402f}
+  html,body{background:linear-gradient(180deg,#24344A,#1A2533) fixed;background-color:#1E2A3B}
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Segoe UI","Segoe UI Variable",Roboto,system-ui,-apple-system,sans-serif;line-height:1.35}
@@ -30,6 +32,17 @@ svg{width:1.4em;height:1.4em;fill:none;stroke:currentColor;stroke-width:2;stroke
 .carBtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:.72rem;font-weight:700;color:var(--brand2)}
 
 .lbl{font-size:1rem;margin:0 0 8px;font-weight:700}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--soft);padding:5px;border-radius:18px;margin-bottom:16px}
+.mode button{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 6px;border-radius:14px;font-weight:800;font-size:1.05rem;min-height:54px;color:var(--muted)}
+.mode button.on{background:var(--card);color:var(--brand2);box-shadow:0 1px 5px rgba(0,0,0,.15)}
+.seg.pow{flex-direction:column;margin-bottom:16px}
+.seg.pow button{white-space:normal;text-align:left;padding:12px 14px}
+.st .op{font-size:.85rem;font-weight:600;color:var(--brand2);margin-top:1px}
+.st .pr.kw b{color:var(--brand2)}
+.plugs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.plug{padding:6px 10px;border-radius:10px;background:var(--soft);font-size:.85rem;font-weight:700}
+.plug.off{opacity:.5;font-weight:600}
+#evNote{margin:0 0 12px}
 .fuels{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .fuels button{padding:14px 8px;border-radius:14px;background:var(--card);border:2px solid var(--line);font-weight:700;font-size:1rem;min-height:56px}
 .fuels button.on{border-color:var(--brand);background:var(--brand);color:#fff}

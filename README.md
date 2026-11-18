@@ -29,3 +29,14 @@ Adreça prevista: **https://xorigu3r.github.io/gasolina/** (GitHub Pages, branca
   Xoriguer comparteixen l'origen `xorigu3r.github.io`).
 - `py -I eines\genera_provincies.py` – torna a fer `js/provincies.js` (baixa 12 MB; rarament cal).
 - `py -I eines\genera_icones.py` – torna a fer les icones.
+
+## Punts de càrrega per a cotxes elèctrics (pestanya «Elèctric»)
+- **Font**: fitxer oficial de la DGT / MITECO (Punt d'Accés Nacional, llicència CC BY, s'actualitza cada 24 h):
+  `https://nap.dgt.es/datex2/v3/miterd/EnergyInfrastructureTablePublication/electrolineras.xml`.
+  Fa uns 84 MB (DATEX II) i no té CORS: el navegador no el pot llegir directament.
+- **Per això** `eines/genera_electrolineres.py` el converteix en quadres d'1° × 1° a `data/ev/` (uns 2 MB en total, ~90 KB
+  per quadre) i l'app només baixa els quadres que toquen la distància triada (memòria cau de 12 h).
+  Ajunta els punts del mateix operador a menys de ~100 m (el mateix aparcament).
+- **Cada dia** el GitHub Action `.github/workflows/electrolineres.yml` torna a generar `data/ev/` i fa commit si ha canviat.
+  Es pot llançar a mà: Actions → Punts de recàrrega → Run workflow.
+- **No porta preus ni si el punt està lliure ara**: la DGT no els publica en aquest fitxer. L'app ho diu clarament.

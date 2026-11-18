@@ -25,8 +25,23 @@
     <button class="carBtn" id="btnCar"><svg viewBox="0 0 24 24"><path d="M5 17h-1a1 1 0 0 1-1-1v-4l2-5h14l2 5v4a1 1 0 0 1-1 1h-1M5 12h14M7 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0M13 17a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/></svg><span data-i18n="car_title"></span></button>
   </header>
 
-  <h2 class="lbl" data-i18n="fuel_title"></h2>
-  <div class="fuels" id="fuels"></div>
+  <div class="mode" id="modeSel">
+    <button data-m="fuel"><svg viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 7h5v4H7zM15 10h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg><span data-i18n="mode_fuel"></span></button>
+    <button data-m="ev"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span data-i18n="mode_ev"></span></button>
+  </div>
+
+  <div id="fuelBox">
+    <h2 class="lbl" data-i18n="fuel_title"></h2>
+    <div class="fuels" id="fuels"></div>
+  </div>
+  <div id="evBox" class="hidden">
+    <h2 class="lbl" data-i18n="ev_plug"></h2>
+    <div class="fuels" id="evPlug"></div>
+    <h2 class="lbl" data-i18n="ev_power"></h2>
+    <div class="seg pow" id="evPow">
+      <button data-p="0" data-i18n="ev_any"></button><button data-p="50" data-i18n="ev_fast"></button><button data-p="150" data-i18n="ev_ultra"></button>
+    </div>
+  </div>
 
   <button class="bigBtn" id="btnSearch"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12zM12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg><span id="btnSearchTxt"></span></button>
   <div class="placeRow">
@@ -44,9 +59,10 @@
         <button data-s="preu" data-i18n="sort_price"></button>
         <button data-s="dist" data-i18n="sort_dist"></button>
       </div>
-      <label class="chk"><input type="checkbox" id="onlyOpen"><span data-i18n="only_open"></span></label>
+      <label class="chk"><input type="checkbox" id="onlyOpen"><span id="onlyOpenTxt"></span></label>
     </div>
     <p class="count" id="count"></p>
+    <div class="msg hidden" id="evNote" data-i18n="ev_noprice"></div>
     <div id="list"></div>
   </section>
 

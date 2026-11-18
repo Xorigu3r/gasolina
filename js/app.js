@@ -23,7 +23,8 @@ const store = {
   get(k, def) { try { const v = localStorage.getItem(k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
-const CFG = Object.assign({ fuel: "g95", cons: 6.5, litres: 40, radi: 10, zoom: 1, lang: null, ordre: "preu", obertes: true },
+const CFG = Object.assign({ fuel: "g95", cons: 6.5, litres: 40, radi: 10, zoom: 1, lang: null, ordre: "preu", obertes: true,
+  mode: "fuel", endoll: "tots", pot: 0 },
   store.get("gasolina.config", {}));
 const desa = () => store.set("gasolina.config", CFG);
 
@@ -140,6 +141,7 @@ async function buscaOnSoc() {
 }
 
 async function mostraLloc() {
+  if (CFG.mode === "ev") return mostraEV();
   const codis = provinciesProperes(LLOC.lat, LLOC.lon, CFG.radi);
   if (!codis.length) { estat(""); avis(t("out_spain")); $("results").classList.add("hidden"); return; }
   try {
@@ -206,8 +208,10 @@ const adreca = e => esc(majuscules(e.a) + " · " + majuscules(e.l && e.l.toLower
 
 function pinta() {
   if (!LLOC) return;
+  if (CFG.mode === "ev") return pintaEV();
   const { llista, ref, millor } = calcula();
   $("results").classList.remove("hidden");
+  $("sortSel").classList.remove("hidden"); $("evNote").classList.add("hidden");
   $("count").textContent = t("count", { n: llista.length, km: CFG.radi });
   pintaFont();
 
@@ -250,7 +254,122 @@ function pinta() {
 }
 
 function pintaFont() {
+  if (CFG.mode === "ev") {
+    const d = EV_DATA ? new Date(EV_DATA) : null;
+    $("source").textContent = d && !isNaN(d) ? t("ev_source", { d: d.toLocaleDateString(locale()) }) : "";
+    return;
+  }
   $("source").textContent = DATA_API ? t("source", { h: horaApi() }) : "";
+}
+
+// ============================================================
+//  Punts de recàrrega per a cotxes elèctrics
+//  data/ev/ el genera cada dia eines/genera_electrolineres.py (GitHub Action) a partir del fitxer de la DGT.
+//  Quadres d'1° × 1°: "lat_lon".json → [nom, operador, adreça, municipi, lat, lon, horari, [[endoll, kW, quants]…]]
+// ============================================================
+const EV_BASE = "data/ev/";
+const VIDA_EV = 12 * 60 * 60 * 1000;
+const ENDOLLS_EV = ["t2", "ccs", "chademo", "schuko"];
+let EV_DATA = "";
+let EV_QUADRES = {};      // "41_1" → [llocs]
+let EV_VELL = false;
+
+async function jsonAmbCache(url, vida) {
+  const cache = await obreCache();
+  const abs = new URL(url, location.href).href;
+  let desat = null;
+  if (cache) {
+    const r = await cache.match(abs);
+    if (r) { try { desat = await r.json(); } catch (e) {} }
+    if (desat && Date.now() - desat.t < vida) return desat.d;
+  }
+  try {
+    const r = await fetch(url, { cache: "no-cache" });
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    if (cache) await cache.put(abs, new Response(JSON.stringify({ t: Date.now(), d }), { headers: { "Content-Type": "application/json" } }));
+    return d;
+  } catch (err) {
+    if (desat) { EV_VELL = true; return desat.d; }
+    throw err;
+  }
+}
+
+function quadresNecessaris(lat, lon, radi) {
+  const dl = radi / 111, dn = radi / (111 * Math.cos(lat * Math.PI / 180));
+  const out = [];
+  for (let a = Math.floor(lat - dl); a <= Math.floor(lat + dl); a++)
+    for (let b = Math.floor(lon - dn); b <= Math.floor(lon + dn); b++) out.push(`${a}_${b}`);
+  return out;
+}
+
+async function mostraEV() {
+  avis(""); estat(t("ev_loading")); EV_VELL = false;
+  try {
+    const idx = await jsonAmbCache(EV_BASE + "index.json", VIDA_EV);
+    EV_DATA = idx.data || "";
+    const cal = quadresNecessaris(LLOC.lat, LLOC.lon, CFG.radi).filter(q => idx.quadres.includes(q));
+    if (!cal.length && !provinciesProperes(LLOC.lat, LLOC.lon, CFG.radi).length) {
+      estat(""); avis(t("out_spain")); $("results").classList.add("hidden"); return;
+    }
+    await Promise.all(cal.filter(q => !EV_QUADRES[q]).map(async q => { EV_QUADRES[q] = await jsonAmbCache(EV_BASE + q + ".json", VIDA_EV); }));
+  } catch (e) {
+    estat(""); avis(t("net_fail")); return;
+  }
+  estat("");
+  if (EV_VELL) avis(t("net_fail"));
+  pinta();
+}
+
+const pareixCodi = s => !s || /^[\s\dA-Z*_\-.#]{6,}$/.test(s) && /\d{3,}/.test(s);
+const netejaOperador = s => String(s || "").replace(/[,.\s]*\b(S\.?\s?L\.?\s?U?|S\.?\s?A\.?\s?U?|S\.?\s?C\.?\s?C\.?\s?L)\.?\s*$/i, "").trim();
+const velocitat = kw => kw >= 150 ? "sp_ultra" : kw >= 50 ? "sp_fast" : kw >= 11 ? "sp_semi" : "sp_slow";
+
+function calculaEV() {
+  const vist = new Set(), llista = [];
+  for (const q of quadresNecessaris(LLOC.lat, LLOC.lon, CFG.radi)) {
+    for (const r of (EV_QUADRES[q] || [])) {
+      const [n, o, a, m, lat, lon, h, e] = r;
+      const d = distKm(LLOC.lat, LLOC.lon, lat, lon);
+      if (d > CFG.radi) continue;
+      const bons = e.filter(([tipus, kw]) => (CFG.endoll === "tots" || tipus === CFG.endoll) && kw >= CFG.pot);
+      if (!bons.length) continue;
+      const clau = lat + "," + lon + "," + o;
+      if (vist.has(clau)) continue; vist.add(clau);
+      const est = h ? estatHorari(h) : { obert: null, sense: true };
+      if (CFG.obertes && est.obert === false) continue;
+      llista.push({ n, o, a, m, lat, lon, h, e, d, est, kw: Math.max(...bons.map(x => x[1])) });
+    }
+  }
+  return llista.sort((x, y) => x.d - y.d);
+}
+
+function pintaEV() {
+  const llista = calculaEV();
+  $("results").classList.remove("hidden");
+  $("best").classList.add("hidden");
+  $("sortSel").classList.add("hidden");
+  $("evNote").classList.remove("hidden");
+  $("count").textContent = t("ev_count", { n: llista.length, km: CFG.radi });
+  pintaFont();
+  if (!llista.length) { $("list").innerHTML = `<div class="msg">${esc(t("ev_none", { km: CFG.radi }))}</div>`; return; }
+  $("list").innerHTML = llista.slice(0, MAX_LLISTA).map((e, i) => {
+    const [ht, hc] = e.est.sense ? [t("ev_nohours"), "unk"] : textHorari(e.est);
+    const oper = netejaOperador(e.o);
+    const nom = pareixCodi(e.n) ? (oper || t("mode_ev")) : e.n;
+    const endolls = e.e.map(([tipus, kw, q]) => `<span class="plug${(CFG.endoll === "tots" || tipus === CFG.endoll) && kw >= CFG.pot ? "" : " off"}">${q} × ${esc(t("ev_" + tipus))} · ${esc(String(kw).replace(".", ","))} kW</span>`).join("");
+    return `<article class="st${e.est.obert === false ? " closed" : ""}">
+      <div class="r1"><div class="who"><div class="nm">${esc(nom)}</div>
+        ${oper && oper !== nom ? `<div class="op">${esc(oper)}</div>` : ""}
+        <div class="ad">${esc(majuscules(e.a) + (e.m ? " · " + e.m : ""))}</div></div>
+        <div class="pr kw"><b>${esc(String(e.kw).replace(".", ","))}</b><small>kW · ${t(velocitat(e.kw))}</small></div></div>
+      <div class="meta"><span>${ICO.pin}${t("km_away", { km: km(e.d) })}</span><span class="${hc}">${ICO.clock}${ht}</span></div>
+      ${i === 0 ? `<div class="badge ref">${t("ev_nearest")}</div>` : ""}
+      <div class="plugs">${endolls}</div>
+      ${e.h ? `<details><summary>${t("hours")}</summary>${esc(e.h)}</details>` : ""}
+      ${botonsRuta(e)}
+    </article>`;
+  }).join("");
 }
 
 // ---------------- Textos i controls ----------------
@@ -258,6 +377,11 @@ function aplicaTextos() {
   document.documentElement.lang = XLANG;
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
   $("fuels").innerHTML = Object.keys(FUELS).map(f => `<button data-f="${f}" class="${f === CFG.fuel ? "on" : ""}">${t("f_" + f)}</button>`).join("");
+  $("evPlug").innerHTML = ["tots", ...ENDOLLS_EV].map(p => `<button data-e="${p}" class="${p === CFG.endoll ? "on" : ""}">${t(p === "tots" ? "ev_all" : "ev_" + p)}</button>`).join("");
+  marcaSeg("modeSel", "m", CFG.mode); marcaSeg("evPow", "p", CFG.pot);
+  $("fuelBox").classList.toggle("hidden", CFG.mode === "ev");
+  $("evBox").classList.toggle("hidden", CFG.mode !== "ev");
+  $("onlyOpenTxt").textContent = t(CFG.mode === "ev" ? "ev_only_open" : "only_open");
   $("langSel").innerHTML = LANGS.map(l => `<button data-l="${l.id}" class="${l.id === XLANG ? "on" : ""}">${l.name}</button>`).join("");
   $("btnSearchTxt").textContent = LLOC && !LLOC.nom ? t("btn_refresh") : t("btn_search");
   $("fromTxt").textContent = LLOC && LLOC.nom ? t("place_from", { m: LLOC.nom }) : "";
@@ -270,7 +394,14 @@ function aplicaTextos() {
 function marcaSeg(id, attr, v) { document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle("on", b.dataset[attr] == v)); }
 
 $("fuels").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.fuel = b.dataset.f; desa(); marcaSeg("fuels", "f", CFG.fuel); pinta(); };
-$("sortSel").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.ordre = b.dataset.s; desa(); marcaSeg("sortSel", "s", CFG.ordre); pinta(); };
+$("modeSel").onclick = e => {
+  const b = e.target.closest("button"); if (!b || b.dataset.m === CFG.mode) return;
+  CFG.mode = b.dataset.m; desa(); aplicaTextos(); avis("");
+  if (LLOC) mostraLloc();
+};
+$("evPlug").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.endoll = b.dataset.e; desa(); marcaSeg("evPlug", "e", CFG.endoll); pinta(); };
+$("evPow").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.pot = +b.dataset.p; desa(); marcaSeg("evPow", "p", CFG.pot); pinta(); };
+$("sortSel").onclick =e => { const b = e.target.closest("button"); if (!b) return; CFG.ordre = b.dataset.s; desa(); marcaSeg("sortSel", "s", CFG.ordre); pinta(); };
 $("onlyOpen").onchange = e => { CFG.obertes = e.target.checked; desa(); pinta(); };
 $("btnSearch").onclick = () => buscaOnSoc().then(aplicaTextos);
 
