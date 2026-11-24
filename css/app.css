@@ -115,3 +115,25 @@ details summary{cursor:pointer;font-weight:600;padding:4px 0}
 .stepper button{width:58px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:1.6rem;font-weight:700}
 .stepper input{flex:1;min-width:0;text-align:center;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:1.3rem;font-weight:800}
 .note{font-size:.82rem;color:var(--muted);margin:-4px 2px 16px;line-height:1.45}
+
+/* Fons del mode fosc amb el degradat suau del blau pissarra (va al final perquè guanyi a html,body{background}) */
+@media (prefers-color-scheme:dark){ html,body{background:linear-gradient(180deg,#24344A,#1A2533) fixed #1E2A3B} }
+
+/* ---------- Avís de baixada de preu ---------- */
+.alert{padding:16px;border-radius:18px;background:var(--card);border:2px solid var(--brand2);margin-bottom:16px}
+.alert h3,.drop h3{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:1.1rem}
+.alert h3 svg{color:var(--brand2)}
+.alert p{margin:6px 0}
+.alert .sm{font-size:.85rem;color:var(--muted)}
+.alert input[type=range]{width:100%;height:44px;margin:6px 0 0;accent-color:var(--brand);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;padding:0 4px;font-weight:800;font-size:1rem;color:var(--muted)}
+.ticks span{width:2em;text-align:center}
+.ticks span:first-child{text-align:left}.ticks span:last-child{text-align:right}
+.alWhen{font-size:1.05rem;margin-top:10px!important}
+.alert .bigBtn{margin-top:10px}
+.alBtns{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.secBtn{padding:12px 16px;border-radius:14px;background:var(--soft);border:1px solid var(--line);font-weight:700;min-height:48px}
+.drop{margin-top:14px;padding:16px;border-radius:18px;background:var(--okbg);border:2px solid var(--ok)}
+.drop h3{color:var(--ok)}
+.drop p{margin:6px 0 0;font-size:1rem}
+.drop .secBtn{width:100%;margin-top:10px}

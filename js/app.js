@@ -10,13 +10,7 @@ const VIDA_DADES = 30 * 60 * 1000;
 const FACTOR_CARRETERA = 1.3;
 const MAX_LLISTA = 40;
 
-const FUELS = {
-  g95: ["Precio Gasolina 95 E5", "Precio Gasolina 95 E10"],
-  g98: ["Precio Gasolina 98 E5", "Precio Gasolina 98 E10"],
-  ga:  ["Precio Gasoleo A"],
-  gp:  ["Precio Gasoleo Premium"],
-  glp: ["Precio Gases licuados del petróleo"],
-};
+const FUELS = AVIS_FUELS;   // js/avis.js (el service worker també el fa servir)
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -24,7 +18,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const CFG = Object.assign({ fuel: "g95", cons: 6.5, litres: 40, radi: 10, zoom: 1, lang: null, ordre: "preu", obertes: true,
-  mode: "fuel", endoll: "tots", pot: 0 },
+  mode: "fuel", endoll: "tots", pot: 0, alCents: 3 },
   store.get("gasolina.config", {}));
 const desa = () => store.set("gasolina.config", CFG);
 
@@ -218,6 +212,7 @@ function pinta() {
   if (!llista.length) {
     $("best").classList.add("hidden");
     $("list").innerHTML = `<div class="msg">${esc(t("none", { km: CFG.radi }))}</div>`;
+    pintaAlerta();
     return;
   }
   // Targeta de la millor opció
@@ -251,6 +246,7 @@ function pinta() {
       ${botonsRuta(e)}
     </article>`;
   }).join("");
+  pintaAlerta();
 }
 
 function pintaFont() {
@@ -354,6 +350,7 @@ function pintaEV() {
   const llista = calculaEV();
   $("results").classList.remove("hidden");
   $("best").classList.add("hidden");
+  $("alertBox").classList.add("hidden");
   $("sortSel").classList.add("hidden");
   $("evNote").classList.remove("hidden");
   $("count").textContent = t("ev_count", { n: llista.length, km: CFG.radi });
@@ -377,6 +374,125 @@ function pintaEV() {
     </article>`;
   }).join("");
 }
+
+// ============================================================
+//  Avís de baixada de preu (lògica compartida a js/avis.js)
+// ============================================================
+let ALERTA = null;              // l'avís desat (memòria cau), o null
+let ALERTA_MIRAT = 0;           // quan s'ha mirat per darrer cop des de l'app
+const dataCurta = ms => new Date(ms).toLocaleDateString(locale(), { day: "numeric", month: "numeric" });
+const textQuan = n => n === 1 ? t("al_when_1") : t("al_when", { n: n >= 7 ? "7" : n });
+
+function pintaAlerta() {
+  const box = $("alertBox");
+  if (CFG.mode === "ev" || !LLOC) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const on = ALERTA && ALERTA.on;
+  const n = on ? ALERTA.cents : CFG.alCents;
+  const marques = [1, 2, 3, 4, 5, 6, 7].map(i => `<span>${i === 7 ? "7+" : i}</span>`).join("");
+  let cos = "";
+  if (on) {
+    cos = `<p>${t("al_ref", { f: esc(t("f_" + ALERTA.fuel)), z: esc(ALERTA.zona || ""), p: preu(ALERTA.ref), d: dataCurta(ALERTA.refData) })}</p>
+      <p id="alTarget">${t("al_target", { p: preu(Math.max(0, ALERTA.ref - n / 100)) })}</p>
+      <p class="sm">${t(ALERTA.bg ? "al_how_bg" : "al_how_open")}</p>
+      <div class="alBtns"><button class="linkBtn" id="alReset">${t("al_reset")}</button>
+        <button class="secBtn" id="alStop">${t("al_stop")}</button></div>`;
+  } else {
+    cos = ESTACIONS.some(e => e.p[CFG.fuel])
+      ? `<button class="bigBtn" id="alOn"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>${t("al_on")}</button>`
+      : `<p class="sm">${t("al_need")}</p>`;
+  }
+  box.innerHTML = `<h3><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>${t("al_title")}${on ? " ✓" : ""}</h3>
+    <p class="sm">${t("al_sub")}</p>
+    <input type="range" id="alRange" min="1" max="7" step="1" value="${n}" aria-label="${esc(t("al_sub"))}">
+    <div class="ticks">${marques}</div>
+    <p class="alWhen" id="alWhen">${textQuan(n)}</p>
+    ${cos}`;
+  $("alRange").oninput = e => {
+    const v = +e.target.value;
+    $("alWhen").innerHTML = textQuan(v);
+    if (on && $("alTarget")) $("alTarget").innerHTML = t("al_target", { p: preu(Math.max(0, ALERTA.ref - v / 100)) });
+  };
+  $("alRange").onchange = async e => {
+    const v = +e.target.value;
+    CFG.alCents = v; desa();
+    if (on) { ALERTA.cents = v; await desaAvis(ALERTA); }
+  };
+  if ($("alOn")) $("alOn").onclick = activaAlerta;
+  if ($("alReset")) $("alReset").onclick = activaAlerta;
+  if ($("alStop")) $("alStop").onclick = treuAlerta;
+}
+
+async function activaAlerta() {
+  if (!LLOC) return;
+  const a = { on: true, cents: CFG.alCents, fuel: CFG.fuel, lat: LLOC.lat, lon: LLOC.lon, radi: CFG.radi,
+    provs: PROVS_BAIXADES.slice(), lang: XLANG, bg: false };
+  const m = mesBarata(ESTACIONS, a);
+  if (!m) { pintaAlerta(); return; }
+  // Zona: la població triada a mà o la de la gasolinera més propera
+  const propera = ESTACIONS.filter(e => e.p[CFG.fuel]).sort((x, y) => distKm(LLOC.lat, LLOC.lon, x.lat, x.lon) - distKm(LLOC.lat, LLOC.lon, y.lat, y.lon))[0];
+  Object.assign(a, { ref: m.preu, refData: Date.now(), refNom: m.n, refMun: m.m, zona: LLOC.nom || (propera && majuscules(propera.m)) || "" });
+  ALERTA = a; ALERTA_MIRAT = Date.now();
+  await desaAvis(a); pintaAlerta();
+  a.bg = await preparaSegonPla();
+  await desaAvis(a); pintaAlerta();
+}
+
+async function treuAlerta() {
+  if (ALERTA) { ALERTA.on = false; await desaAvis(ALERTA); }
+  try { const reg = await swPreparat(); if (reg && reg.periodicSync) await reg.periodicSync.unregister(AVIS_SYNC); } catch (e) {}
+  $("drop").classList.add("hidden");
+  pintaAlerta();
+}
+
+const swPreparat = () => !("serviceWorker" in navigator) ? Promise.resolve(null)
+  : Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(() => r(null), 4000))]);
+
+// Avisos amb l'app tancada: només on el navegador ho permet (Chrome d'Android amb l'app instal·lada).
+// A l'APK (finestra web) i a l'iPhone no hi ha manera sense servidor propi: l'app ho mira en obrir-se.
+async function preparaSegonPla() {
+  try {
+    if (!("Notification" in window)) return false;
+    if ((await Notification.requestPermission()) !== "granted") return false;
+    const reg = await swPreparat();
+    if (!reg || !("periodicSync" in reg)) return false;
+    const st = await navigator.permissions.query({ name: "periodic-background-sync" });
+    if (st.state !== "granted") return false;
+    await reg.periodicSync.register(AVIS_SYNC, { minInterval: 4 * 60 * 60 * 1000 });
+    return true;
+  } catch (e) { return false; }
+}
+
+function mostraBaixada(b, fuel) {
+  const d = $("drop");
+  d.innerHTML = `<h3><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>${t("al_drop")}</h3>
+    <p>${esc(textBaixada(b, fuel))}</p>
+    ${isFinite(b.lat) ? botonsRuta(b) : ""}
+    <button class="secBtn" id="dropOk">${t("al_ok")}</button>`;
+  d.classList.remove("hidden");
+  $("dropOk").onclick = () => d.classList.add("hidden");
+}
+
+// En obrir l'app (i en tornar-hi si fa més de 30 minuts): mira si ha baixat.
+async function comprovaAlerta() {
+  if (!ALERTA || !ALERTA.on) return;
+  ALERTA_MIRAT = Date.now();
+  if (ALERTA.pendent) {                      // trobada pel service worker en segon pla
+    mostraBaixada(ALERTA.pendent, ALERTA.fuel);
+    delete ALERTA.pendent; await desaAvis(ALERTA);
+  }
+  try {
+    const res = await Promise.all((ALERTA.provs || []).map(dadesProvincia));
+    const { a, baixada } = revisaAvis(ALERTA, res.flatMap(r => r.e));
+    ALERTA = a;
+    if (baixada) mostraBaixada(baixada, a.fuel);
+    await desaAvis(a);
+    pintaAlerta();
+  } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - ALERTA_MIRAT > VIDA_DADES) comprovaAlerta();
+});
 
 // ---------------- Textos i controls ----------------
 function aplicaTextos() {
@@ -432,7 +548,11 @@ document.querySelectorAll("[data-step]").forEach(b => b.onclick = ev => {
 $("inCons").onchange = llegeixCotxe; $("inLitres").onchange = llegeixCotxe;
 $("radiusSel").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.radi = +b.dataset.r; desa(); marcaSeg("radiusSel", "r", CFG.radi); };
 $("sizeSel").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.zoom = +b.dataset.z; desa(); aplicaZoom(); marcaSeg("sizeSel", "z", CFG.zoom); };
-$("langSel").onclick = e => { const b = e.target.closest("button"); if (!b) return; CFG.lang = XLANG = b.dataset.l; desa(); aplicaTextos(); pinta(); };
+$("langSel").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  CFG.lang = XLANG = b.dataset.l; desa(); aplicaTextos(); pinta();
+  if (ALERTA && ALERTA.on) { ALERTA.lang = XLANG; desaAvis(ALERTA); }   // l'avís en segon pla surt en aquest idioma
+};
 const aplicaZoom = () => document.documentElement.dataset.z = CFG.zoom;
 
 // Triar població a mà
@@ -473,6 +593,8 @@ XLANG = triaIdioma(CFG.lang);
 aplicaZoom();
 aplicaTextos();
 (async () => {
+  ALERTA = await llegeixAvis();
+  comprovaAlerta();
   const desat = store.get("gasolina.lloc", null);
   if (desat && isFinite(desat.lat)) { LLOC = desat; aplicaTextos(); mostraLloc(); return; }
   // Si ja ens havia donat permís, busquem directament (la gent no ha de prémer res)

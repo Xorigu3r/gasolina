@@ -114,6 +114,23 @@ const TX = {
   ev_noprice:   ["La DGT no publica el preu ni si el punt està lliure ara. Mira-ho a l’app de l’operador abans d’anar-hi.", "La DGT no publica el precio ni si el punto está libre ahora. Míralo en la app del operador antes de ir.", "La DGT ne publie ni le prix ni la disponibilité. Vérifiez dans l’appli de l’opérateur avant d’y aller.", "The DGT doesn’t publish the price or whether the point is free right now. Check the operator’s app before you go."],
   ev_source:    ["Punts de càrrega oficials de la DGT i el Ministeri per a la Transició Ecològica (CC BY), del {d}.", "Puntos de carga oficiales de la DGT y el Ministerio para la Transición Ecológica (CC BY), del {d}.", "Bornes officielles de la DGT et du ministère de la Transition écologique (CC BY), du {d}.", "Official charging points from the DGT and the Ministry for the Ecological Transition (CC BY), dated {d}."],
 
+  // ---------- Avís de baixada de preu ----------
+  al_title:     ["Avisa’m si baixa el preu", "Avísame si baja el precio", "Prévenez-moi si le prix baisse", "Tell me when the price drops"],
+  al_sub:       ["Tria quants cèntims ha de baixar:", "Elige cuántos céntimos tiene que bajar:", "Choisissez de combien de centimes il doit baisser :", "Choose how many cents it has to drop:"],
+  al_on:        ["Activa l’avís", "Activar el aviso", "Activer l’alerte", "Turn on the alert"],
+  al_stop:      ["Treu l’avís", "Quitar el aviso", "Supprimer l’alerte", "Turn off the alert"],
+  al_when_1:    ["T’avisarem quan baixi <b>1 cèntim</b> o més", "Te avisaremos cuando baje <b>1 céntimo</b> o más", "Alerte dès qu’il baisse d’<b>1 centime</b> ou plus", "Alert when it drops <b>1 cent</b> or more"],
+  al_when:      ["T’avisarem quan baixi <b>{n} cèntims</b> o més", "Te avisaremos cuando baje <b>{n} céntimos</b> o más", "Alerte dès qu’il baisse de <b>{n} centimes</b> ou plus", "Alert when it drops <b>{n} cents</b> or more"],
+  al_ref:       ["{f} (zona: {z}): ara la més barata val <b>{p} €</b> (preu del {d}).", "{f} en la zona de {z}: ahora la más barata cuesta <b>{p} €</b> (precio del {d}).", "{f} près de {z} : la moins chère est à <b>{p} €</b> (prix du {d}).", "{f} around {z}: the cheapest costs <b>{p} €</b> (price on {d})."],
+  al_target:    ["Sortirà l’avís quan n’hi hagi una a <b>{p} €</b> o menys.", "Saldrá el aviso cuando haya una a <b>{p} €</b> o menos.", "Vous serez prévenu dès qu’une station sera à <b>{p} €</b> ou moins.", "You’ll be told when one is at <b>{p} €</b> or less."],
+  al_reset:     ["Torna a començar des d’aquí i ara", "Volver a empezar desde aquí y ahora", "Recommencer d’ici et maintenant", "Start again from here and now"],
+  al_how_bg:    ["L’app ho mira cada vegada que l’obres i, a més, sola unes quantes vegades al dia: et sortirà un avís al mòbil.", "La app lo mira cada vez que la abres y, además, sola unas cuantas veces al día: te saldrá un aviso en el móvil.", "L’appli vérifie à chaque ouverture et aussi toute seule quelques fois par jour : vous recevrez une notification.", "The app checks every time you open it and also by itself a few times a day: you’ll get a notification."],
+  al_how_open:  ["L’app ho mira cada vegada que l’obres. En aquest aparell no ho pot mirar sola quan està tancada.", "La app lo mira cada vez que la abres. En este aparato no lo puede mirar sola cuando está cerrada.", "L’appli vérifie à chaque ouverture. Sur cet appareil, elle ne peut pas vérifier quand elle est fermée.", "The app checks every time you open it. On this device it can’t check by itself while closed."],
+  al_drop:      ["Ha baixat el preu!", "¡Ha bajado el precio!", "Le prix a baissé !", "The price has dropped!"],
+  al_drop_txt:  ["{f}: {n} ({m}) la ven a {p} €, {c} cèntims menys que el {d}.", "{f}: {n} ({m}) la vende a {p} €, {c} céntimos menos que el {d}.", "{f} : {n} ({m}) la vend à {p} €, {c} centimes de moins que le {d}.", "{f}: {n} ({m}) sells it at {p} €, {c} cents less than on {d}."],
+  al_need:      ["Primer busca les gasolineres i després activa l’avís.", "Primero busca las gasolineras y después activa el aviso.", "Cherchez d’abord les stations, puis activez l’alerte.", "First search for stations, then turn on the alert."],
+  al_ok:        ["D’acord", "De acuerdo", "OK", "OK"],
+
   credit:       ["Sense anuncis. Fet per Xoriguer.", "Sin anuncios. Hecho por Xoriguer.", "Sans publicité. Réalisé par Xoriguer.", "No ads. Made by Xoriguer."],
 };
 

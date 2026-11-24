@@ -40,3 +40,14 @@ Adreça prevista: **https://xorigu3r.github.io/gasolina/** (GitHub Pages, branca
 - **Cada dia** el GitHub Action `.github/workflows/electrolineres.yml` torna a generar `data/ev/` i fa commit si ha canviat.
   Es pot llançar a mà: Actions → Punts de recàrrega → Run workflow.
 - **No porta preus ni si el punt està lliure ara**: la DGT no els publica en aquest fitxer. L'app ho diu clarament.
+
+## Avís de baixada de preu
+- Targeta «Avisa’m si baixa el preu» (mode carburant): una barra d'1 a 7+ cèntims. Desa el carburant, el lloc, la
+  distància i el preu de la més barata d'aquell moment (preu de referència). Avisa quan n'hi ha una que és almenys
+  aquells cèntims més barata; llavors el preu nou passa a ser la referència.
+- L'avís es guarda a la memòria cau `gasolina-dades` (clau `…/avis.json`) perquè també el pugui llegir el service worker.
+  La lògica és a `js/avis.js` (la fan servir l'app i `sw.js`).
+- **Quan es mira**: sempre en obrir l'app (i en tornar-hi al cap de 30 minuts). A més, a Chrome d'Android amb l'app
+  instal·lada, `periodicsync` ho mira sol unes quantes vegades al dia i envia una notificació.
+  A l'APK (finestra web de Capacitor) i a l'iPhone només es mira en obrir l'app: per avisar amb l'app tancada caldria
+  un plugin natiu a l'APK o un servidor de notificacions.
