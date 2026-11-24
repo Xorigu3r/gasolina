@@ -119,7 +119,6 @@ const TX = {
   al_sub:       ["Tria quants cèntims ha de baixar:", "Elige cuántos céntimos tiene que bajar:", "Choisissez de combien de centimes il doit baisser :", "Choose how many cents it has to drop:"],
   al_on:        ["Activa l’avís", "Activar el aviso", "Activer l’alerte", "Turn on the alert"],
   al_stop:      ["Treu l’avís", "Quitar el aviso", "Supprimer l’alerte", "Turn off the alert"],
-  al_when_1:    ["T’avisarem quan baixi <b>1 cèntim</b> o més", "Te avisaremos cuando baje <b>1 céntimo</b> o más", "Alerte dès qu’il baisse d’<b>1 centime</b> ou plus", "Alert when it drops <b>1 cent</b> or more"],
   al_when:      ["T’avisarem quan baixi <b>{n} cèntims</b> o més", "Te avisaremos cuando baje <b>{n} céntimos</b> o más", "Alerte dès qu’il baisse de <b>{n} centimes</b> ou plus", "Alert when it drops <b>{n} cents</b> or more"],
   al_ref:       ["{f} (zona: {z}): ara la més barata val <b>{p} €</b> (preu del {d}).", "{f} en la zona de {z}: ahora la más barata cuesta <b>{p} €</b> (precio del {d}).", "{f} près de {z} : la moins chère est à <b>{p} €</b> (prix du {d}).", "{f} around {z}: the cheapest costs <b>{p} €</b> (price on {d})."],
   al_target:    ["Sortirà l’avís quan n’hi hagi una a <b>{p} €</b> o menys.", "Saldrá el aviso cuando haya una a <b>{p} €</b> o menos.", "Vous serez prévenu dès qu’une station sera à <b>{p} €</b> ou moins.", "You’ll be told when one is at <b>{p} €</b> or less."],

@@ -2,7 +2,7 @@
 // Quan canviïs l'app, puja el número de versió perquè els mòbils agafin la nova.
 // IMPORTANT: totes les apps Xoriguer comparteixen l'origen xorigu3r.github.io.
 // Aquest fitxer NOMÉS toca les memòries cau que comencen per "gasolina-".
-const VERSION = "gasolina-v5-avis";
+const VERSION = "gasolina-v6-avis";
 const DADES = "gasolina-dades";   // preus i avís guardats per l'app (js/app.js); no s'esborra en actualitzar
 const APP = [
   "./", "index.html", "manifest.json", "css/app.css", "marca/marca.css", "marca/Montserrat-ExtraBold.ttf",

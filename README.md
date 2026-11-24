@@ -42,7 +42,7 @@ Adreça prevista: **https://xorigu3r.github.io/gasolina/** (GitHub Pages, branca
 - **No porta preus ni si el punt està lliure ara**: la DGT no els publica en aquest fitxer. L'app ho diu clarament.
 
 ## Avís de baixada de preu
-- Targeta «Avisa’m si baixa el preu» (mode carburant): una barra d'1 a 7+ cèntims. Desa el carburant, el lloc, la
+- Targeta «Avisa’m si baixa el preu» (mode carburant): una barra amb 4, 6, 8 o 10+ cèntims (menys de 4 avisaria massa sovint). Desa el carburant, el lloc, la
   distància i el preu de la més barata d'aquell moment (preu de referència). Avisa quan n'hi ha una que és almenys
   aquells cèntims més barata; llavors el preu nou passa a ser la referència.
 - L'avís es guarda a la memòria cau `gasolina-dades` (clau `…/avis.json`) perquè també el pugui llegir el service worker.

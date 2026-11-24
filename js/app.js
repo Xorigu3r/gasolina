@@ -18,7 +18,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const CFG = Object.assign({ fuel: "g95", cons: 6.5, litres: 40, radi: 10, zoom: 1, lang: null, ordre: "preu", obertes: true,
-  mode: "fuel", endoll: "tots", pot: 0, alCents: 3 },
+  mode: "fuel", endoll: "tots", pot: 0, alCents: 4 },
   store.get("gasolina.config", {}));
 const desa = () => store.set("gasolina.config", CFG);
 
@@ -381,15 +381,19 @@ function pintaEV() {
 let ALERTA = null;              // l'avís desat (memòria cau), o null
 let ALERTA_MIRAT = 0;           // quan s'ha mirat per darrer cop des de l'app
 const dataCurta = ms => new Date(ms).toLocaleDateString(locale(), { day: "numeric", month: "numeric" });
-const textQuan = n => n === 1 ? t("al_when_1") : t("al_when", { n: n >= 7 ? "7" : n });
+// Valors de la barra (cèntims). Menys de 4 avisaria massa sovint: els preus es mouen 1–2 cèntims gairebé cada setmana.
+const CENTS_BARRA = [4, 6, 8, 10];
+const ajustaCents = n => CENTS_BARRA.find(v => v >= n) || CENTS_BARRA[CENTS_BARRA.length - 1];
+const textQuan = n => t("al_when", { n });
 
 function pintaAlerta() {
   const box = $("alertBox");
   if (CFG.mode === "ev" || !LLOC) { box.classList.add("hidden"); return; }
   box.classList.remove("hidden");
   const on = ALERTA && ALERTA.on;
-  const n = on ? ALERTA.cents : CFG.alCents;
-  const marques = [1, 2, 3, 4, 5, 6, 7].map(i => `<span>${i === 7 ? "7+" : i}</span>`).join("");
+  const n = ajustaCents(on ? ALERTA.cents : CFG.alCents);
+  const ultim = CENTS_BARRA.length - 1;
+  const marques = CENTS_BARRA.map((v, i) => `<span>${i === ultim ? v + "+" : v}</span>`).join("");
   let cos = "";
   if (on) {
     cos = `<p>${t("al_ref", { f: esc(t("f_" + ALERTA.fuel)), z: esc(ALERTA.zona || ""), p: preu(ALERTA.ref), d: dataCurta(ALERTA.refData) })}</p>
@@ -404,17 +408,17 @@ function pintaAlerta() {
   }
   box.innerHTML = `<h3><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>${t("al_title")}${on ? " ✓" : ""}</h3>
     <p class="sm">${t("al_sub")}</p>
-    <input type="range" id="alRange" min="1" max="7" step="1" value="${n}" aria-label="${esc(t("al_sub"))}">
+    <input type="range" id="alRange" min="0" max="${ultim}" step="1" value="${CENTS_BARRA.indexOf(n)}" aria-label="${esc(t("al_sub"))}">
     <div class="ticks">${marques}</div>
     <p class="alWhen" id="alWhen">${textQuan(n)}</p>
     ${cos}`;
   $("alRange").oninput = e => {
-    const v = +e.target.value;
+    const v = CENTS_BARRA[+e.target.value];
     $("alWhen").innerHTML = textQuan(v);
     if (on && $("alTarget")) $("alTarget").innerHTML = t("al_target", { p: preu(Math.max(0, ALERTA.ref - v / 100)) });
   };
   $("alRange").onchange = async e => {
-    const v = +e.target.value;
+    const v = CENTS_BARRA[+e.target.value];
     CFG.alCents = v; desa();
     if (on) { ALERTA.cents = v; await desaAvis(ALERTA); }
   };
@@ -425,7 +429,7 @@ function pintaAlerta() {
 
 async function activaAlerta() {
   if (!LLOC) return;
-  const a = { on: true, cents: CFG.alCents, fuel: CFG.fuel, lat: LLOC.lat, lon: LLOC.lon, radi: CFG.radi,
+  const a = { on: true, cents: ajustaCents(CFG.alCents), fuel: CFG.fuel, lat: LLOC.lat, lon: LLOC.lon, radi: CFG.radi,
     provs: PROVS_BAIXADES.slice(), lang: XLANG, bg: false };
   const m = mesBarata(ESTACIONS, a);
   if (!m) { pintaAlerta(); return; }
